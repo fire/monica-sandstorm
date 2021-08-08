@@ -18,18 +18,11 @@ RUN set -ex; \
     for ext in tar.bz2 tar.bz2.asc; do \
         curl -fsSL -o monica-$MONICA_VERSION.$ext "https://github.com/monicahq/monica/releases/download/$MONICA_VERSION/monica-$MONICA_VERSION.$ext"; \
     done; \
-    \
-    GPGKEY='BDAB0D0D36A00466A2964E85DE15667131EA6018'; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf ; \
-    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPGKEY"; \
-    gpg --batch --verify monica-$MONICA_VERSION.tar.bz2.asc monica-$MONICA_VERSION.tar.bz2; \
-    \
     mkdir /app; \
     tar -xf monica-$MONICA_VERSION.tar.bz2 -C /app --strip-components=1; \
     \
     gpgconf --kill all; \
-    rm -r "$GNUPGHOME" monica-$MONICA_VERSION.tar.bz2 monica-$MONICA_VERSION.tar.bz2.asc
+    rm -r monica-$MONICA_VERSION.tar.bz2
 
 WORKDIR /app
 RUN yarn install --ignore-engines --frozen-lockfile --ignore-scripts
@@ -74,6 +67,4 @@ RUN cd /opt/www/html \
 
 COPY --from=js-builder /app/public/js/vendor.js /opt/www/html/public/js/vendor.js
 
-# COPY opt/app/launcher.sh /opt/app/
-# COPY opt/app/service-config/nginx.conf /opt/app/service-config/nginx.conf
-# COPY opt/app/service-config/mime.types /opt/app/service-config/mime.types
+RUN apt-get install -y postgresql-11 postgresql-client-11
